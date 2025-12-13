@@ -1,0 +1,36 @@
+version: '3.9'
+services:
+  control-plane:
+    build:
+      context: .
+      dockerfile: Dockerfile.control-plane
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+  sample-service-a:
+    build:
+      context: services/sample-service-a
+      dockerfile: ../Dockerfile.service
+    environment:
+      - PORT=8101
+      - SERVICE_NAME=sample-service-a
+      - SERVICE_HOST=sample-service-a
+      - CONTROL_PLANE_URL=http://control-plane:8000
+    ports:
+      - "8101:8101"
+    depends_on:
+      - control-plane
+  sample-service-b:
+    build:
+      context: services/sample-service-b
+      dockerfile: ../Dockerfile.service
+    environment:
+      - PORT=8102
+      - SERVICE_NAME=sample-service-b
+      - SERVICE_HOST=sample-service-b
+      - CONTROL_PLANE_URL=http://control-plane:8000
+    ports:
+      - "8102:8102"
+    depends_on:
+      - control-plane
