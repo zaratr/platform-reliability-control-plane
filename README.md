@@ -1,8 +1,30 @@
 # Platform Reliability Control Plane
 
-Platform Reliability Control Plane is a portfolio-ready reference implementation that showcases how a platform team can provide reliability, observability, and automated operations as a shared service. It answers the question:
+Portfolio-grade reference implementation showing how a platform team provides reliability, observability, and **AI-driven automated operations** as a shared service. Upgraded in 2026 with an AI Auto-Remediation agent — before the on-call engineer opens their laptop, the system has already read the eBPF traces, correlated the failure with recent commits, and opened a draft rollback PR.
 
-> **Can this engineer design systems that detect failures early, reduce blast radius, and recover automatically?**
+> **Can this engineer design systems that detect failures early, reduce blast radius, and recover automatically — with AI in the loop?**
+
+## 2026 Update: AI Auto-Remediation (`POST /ai-remediate`)
+
+When restart and rollback strategies fail, the AI agent kicks in:
+
+1. **eBPF trace reader** — samples kernel TCP latency and error events for the degraded process (zero SDK changes on target services)
+2. **GitHub commit correlation** — fetches recent commits and file change lists
+3. **LLM synthesis** — Ollama/Gemma locally or GPT-4o/Claude for cloud; generates root-cause hypothesis + rollback PR body
+4. **Draft PR creation** — opens a GitHub draft PR targeting the identified bad commit
+
+```
+RemediationEngine restart → rollback fails
+              │
+              ▼
+   AiRemediationAgent.analyse_and_remediate()
+     ├── EbpfTraceReader  (kernel ring buffer)
+     ├── GitHubClient     (recent commits)
+     ├── LlmClient        (Ollama / OpenAI-compatible)
+     └── GitHub draft PR  (dry-run safe)
+```
+
+Configure via env vars: `AI_REMEDIATION_LLM_URL`, `AI_REMEDIATION_LLM_MODEL`, `GITHUB_TOKEN`, `AI_REMEDIATION_DRY_RUN=true`.
 
 This repository includes a lightweight control plane, sample services, failure injection, and documentation written like an internal reliability RFC.
 
