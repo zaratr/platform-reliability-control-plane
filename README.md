@@ -1,6 +1,8 @@
 # Platform Reliability Control Plane
 
-Portfolio-grade reference implementation showing how a platform team provides reliability, observability, and **AI-driven automated operations** as a shared service. Upgraded in 2026 with an AI Auto-Remediation agent — before the on-call engineer opens their laptop, the system has already read the eBPF traces, correlated the failure with recent commits, and opened a draft rollback PR.
+Platform reliability as a shared service — service registry, health probing, automated remediation, and incident tracking. Upgraded in 2026 with an **AI Auto-Remediation agent**: when standard restart/rollback fails, an LLM reads the eBPF kernel traces, correlates them with recent Git commits, and opens a draft rollback PR — before the on-call engineer opens their laptop.
+
+**Skills demonstrated:** Python · FastAPI · platform engineering · SRE · eBPF observability · LLM agentic workflows · GitHub API · incident management · MTTR tracking
 
 > **Can this engineer design systems that detect failures early, reduce blast radius, and recover automatically — with AI in the loop?**
 
@@ -109,9 +111,5 @@ Run the unit and integration tests with:
 pytest
 ```
 
-## Simplifications
-- In-memory stores instead of durable backing services.
-- HTTP endpoints simulate restarts and rollbacks instead of orchestrating real deployments.
-- Failure injection is process-local rather than chaos tooling across hosts.
-
-Despite these simplifications, the control plane demonstrates the core capabilities expected from a platform reliability service.
+## Design Scope
+In-memory stores and HTTP-simulated restarts keep the focus on the control plane logic rather than infrastructure plumbing. Production extensions are documented in the Scaling Notes section — the interfaces are designed to swap in Postgres, Kubernetes primitives, and real chaos tooling without changing the core control plane contracts.
