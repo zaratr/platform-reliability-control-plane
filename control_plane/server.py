@@ -7,6 +7,7 @@ from control_plane.metrics.metrics_store import MetricsStore
 from control_plane.observability.logging_config import configure_logging
 from control_plane.registry.service_registry import ServiceRegistry
 from control_plane.remediation.remediation_engine import RemediationEngine
+from control_plane.remediation.ai_remediation import AiRemediationAgent
 
 configure_logging()
 
@@ -14,6 +15,7 @@ registry = ServiceRegistry()
 metrics = MetricsStore()
 incidents = IncidentManager()
 remediation = RemediationEngine(registry=registry, metrics=metrics)
+ai_agent = AiRemediationAgent()
 health_engine = HealthEngine(registry, metrics, remediation, incidents)
 
 app = FastAPI(title="Platform Reliability Control Plane")
@@ -84,3 +86,34 @@ def list_incidents():
 @app.get("/metrics")
 def get_metrics():
     return metrics.export()
+
+
+class AiRemediateRequest(BaseModel):
+    name: str
+    environment: str
+    process_name: str = ""
+
+
+@app.post("/ai-remediate")
+def ai_remediate(request: AiRemediateRequest):
+    """Trigger AI auto-remediation for a degraded service.
+
+    Reads eBPF kernel traces, correlates with recent Git commits, and uses
+    an LLM to generate a root-cause analysis and draft rollback PR.
+    """
+    process = request.process_name or request.name
+    analysis = ai_agent.analyse_and_remediate(
+        service=request.name,
+        environment=request.environment,
+        process_name=process,
+    )
+    return {
+        "service": analysis.service,
+        "environment": analysis.environment,
+        "root_cause_hypothesis": analysis.root_cause_hypothesis,
+        "recommended_action": analysis.recommended_action,
+        "rollback_sha": analysis.rollback_sha,
+        "confidence": analysis.confidence,
+        "pr_title": analysis.pr_title,
+        "pr_url": analysis.pr_url,
+    }
